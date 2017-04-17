@@ -3,6 +3,7 @@
 #
 
 import logging
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import time
 import RPi.GPIO as GPIO
@@ -20,7 +21,9 @@ def getConfig():
     return cfg
 
 def start(bot, update):
-        update.message.reply_text('Hi!')
+    custom_keyboard = [['Kommen 🏠 ','Gehen 🚙'],['Nur Öffnen ⏫']]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+    update.message.reply_text("Hallo " + update.message.from_user.first_name + u" ✌🏻", reply_markup=reply_markup)
 
 def switchGarage(bot, update):
     GPIO.setmode(GPIO.BOARD)
@@ -42,13 +45,10 @@ def main():
     updater = Updater(cfg['bot']['token'])
 
     dp = updater.dispatcher
-
     dp.add_handler(MessageHandler(Filters.text, switchGarage))
-
     dp.add_handler(CommandHandler("start", start))
 
     updater.start_polling()
-
     updater.idle()
 
 
