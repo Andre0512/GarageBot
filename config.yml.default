@@ -1,2 +1,4 @@
 bot:
     token: <BOT-TOKEN>
+owner:
+    ip: <OWNER-IP>
