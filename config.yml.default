@@ -3,6 +3,7 @@ bot:
 owner:
     ip: <OWNER-IP>
     id: <OWNER-TELEGRAM-ID>
+    username: <TELEGRAM-USERNAME>
 user:
     <USER1>: <USER-ID>
     <USER2>: <USER-ID>

@@ -22,10 +22,11 @@ def getConfig():
     return cfg
 
 def start(bot, update):
-    custom_keyboard = [['Kommen 🏠','Gehen 🚙'],['Nur Öffnen ⏫']]
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
-    update.message.reply_text("Hallo " + update.message.from_user.first_name + u" ✌🏻",
-           reply_markup=reply_markup)
+    if authorized(update, bot):
+        custom_keyboard = [['Kommen 🏠','Gehen 🚙'],['Nur Öffnen ⏫']]
+        reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+        update.message.reply_text("Hallo " + update.message.from_user.first_name + u" ✌🏻",
+               reply_markup=reply_markup)
 
 def ping(ip):
     ret = subprocess.call(['ping', '-c', '2', '-W', '1', ip],
@@ -88,9 +89,18 @@ def button(bot, update):
         switchGarage()    
     update.callback_query.answer()
 
-def analyzeText(bot,update, job_queue):
+def authorized(update, bot):
     userlist = [cfg['owner']['id']] + list(cfg['user'].values())
     if update.message.chat_id in userlist:
+        return True
+    else:
+        update.message.reply_text("Zugriff verweigert.\nZum Freischalten bitte an @" + cfg['owner']['username'] + " wenden.")
+        bot.sendMessage(text="Zugriff für *" + update.message.from_user.first_name + " " + update.message.from_user.last_name 
+                 + " " + str(update.message.from_user.id) + "* wurde verweigert.", chat_id=cfg['owner']['id'], parse_mode=ParseMode.MARKDOWN)
+        return False
+
+def analyzeText(bot,update, job_queue):
+    if authorized(update,bot):
         if update.message.text == 'Kommen 🏠':
             autoClose(bot,update,job_queue,True)
         elif update.message.text == 'Gehen 🚙':
@@ -100,9 +110,9 @@ def analyzeText(bot,update, job_queue):
             switchGarage()    
             msg = update.message.reply_text("Garage schließen?",
                     reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⏬ Schließen', callback_data='close')]]))
-    else:
-         update.message.reply_text("Zugriff verweigert.\nZum Freischalten bitte an @Andre0512 wenden.")
-
+            if not update.message.chat_id == cfg['owner']['id']:
+                bot.sendMessage(text="*" + update.message.from_user.first_name + "* hat *" + update.message.text 
+                        + "* gesendet.", chat_id=cfg['owner']['id'], parse_mode=ParseMode.MARKDOWN)
 
 def main():
     global pwd
