@@ -63,11 +63,11 @@ def countDown(bot, job):
     if counter == -1:
         switchGarage()
 
-def msgGehen(bot, update, job_queue):
+def autoClose(bot, update, job_queue, state):
     update.message.reply_text("Garage wird geöffnet...") 
     switchGarage()
     ip = cfg['owner']['ip']
-    while ping(ip):
+    while bool(ping(ip)) != bool(state):
         time.sleep(5)
     msg = update.message.reply_text("Garage wird in *20 Sekunden* geschlossen.", parse_mode=ParseMode.MARKDOWN,
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('❌ Abbrechen', callback_data='abort')]]))
@@ -83,15 +83,22 @@ def button(bot, update):
     query = update.callback_query
     if query.data == "abort":
         abort = True
-        update.callback_query.answer()
+    elif query.data == "close":
+        bot.editMessageText(text='Garage wird geschlossen...', 
+                        chat_id=query.message.chat_id, message_id=query.message.message_id)
+        switchGarage()    
+    update.callback_query.answer()
 
 def analyzeText(bot,update, job_queue):
     if update.message.text == 'Kommen 🏠':
-        None
+        autoClose(bot,update,job_queue,True)
     elif update.message.text == 'Gehen 🚙':
-        msgGehen(bot,update,job_queue)
+        autoClose(bot,update,job_queue,False)
     elif update.message.text == 'Nur Öffnen ⏫':
-        None
+        update.message.reply_text("Garage wird geöffnet...") 
+        switchGarage()    
+        msg = update.message.reply_text("Garage schließen?",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⏬ Schließen', callback_data='close')]]))
 
 def main():
     global pwd
