@@ -3,8 +3,8 @@
 #
 
 import logging
-from telegram import ReplyKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, Job
 import time
 import RPi.GPIO as GPIO
 import yaml
@@ -24,7 +24,9 @@ def getConfig():
 def start(bot, update):
     custom_keyboard = [['Kommen 🏠','Gehen 🚙'],['Nur Öffnen ⏫']]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard)
-    update.message.reply_text("Hallo " + update.message.from_user.first_name + u" ✌🏻", reply_markup=reply_markup)
+    update.message.reply_text("Hallo " + update.message.from_user.first_name + u" ✌🏻",
+           reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('❌ Abbrechen', callback_data='abort')]]))
+           #reply_markup=reply_markup)
 
 def ping(ip):
     ret = subprocess.call(['ping', '-c', '2', '-W', '1', ip],
@@ -41,34 +43,70 @@ def switchGarage():
     time.sleep(2)
     GPIO.cleanup()
 
-def msgGehen(bot, update):
-    switchGarage()
+def countDown(bot, job):
+    global counter
+    global abort
+    counter = counter -1
+    job = Job(countDown, 1, repeat=False, context=job.context)
+    reply_markup=False
+    if counter == -1:
+        text="Garage wird geschlossen..."
+    elif abort:
+        text="Wird abgebrochen..."
+        abort = False
+    else:
+        job.context[1].put(job)
+        text="Garage wird in *" + str(counter) + " Sekunden* geschlossen."
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('❌ Abbrechen', callback_data='abort')]])
+    bot.editMessageText(text=text,reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN, 
+            chat_id=job.context[0].chat_id, message_id=job.context[0].message_id)
+    if counter == -1:
+        switchGarage()
+
+def msgGehen(bot, update, job_queue):
     update.message.reply_text("Garage wird geöffnet...") 
+    switchGarage()
     ip = cfg['owner']['ip']
     while ping(ip):
-        time.sleep(20)
-    update.message.reply_text("Garage wird geschlossen...") 
-    switchGarage()
+        time.sleep(5)
+    msg = update.message.reply_text("Garage wird in *20 Sekunden* geschlossen.", parse_mode=ParseMode.MARKDOWN,
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('❌ Abbrechen', callback_data='abort')]]))
+ 
+    job = Job(countDown, 1, repeat=False, context=[msg,job_queue])
+    job_queue.put(job)
+    
+    global counter
+    counter = 20
 
-def analyzeText(bot,update):
+def button(bot, update):
+    global abort
+    query = update.callback_query
+    if query.data == "abort":
+        abort = True
+        update.callback_query.answer()
+
+def analyzeText(bot,update, job_queue):
     if update.message.text == 'Kommen 🏠':
         None
     elif update.message.text == 'Gehen 🚙':
-        msgGehen(bot,update)
+        msgGehen(bot,update,job_queue)
     elif update.message.text == 'Nur Öffnen ⏫':
         None
 
 def main():
     global pwd
     global cfg
+    global abort
 
+    abort = False
     pwd = os.path.dirname(__file__)
     cfg = getConfig()
     
     updater = Updater(cfg['bot']['token'])
 
     dp = updater.dispatcher
-    dp.add_handler(MessageHandler(Filters.text, analyzeText))
+    dp.add_handler(CallbackQueryHandler(button))
+    dp.add_handler(MessageHandler(Filters.text, analyzeText, pass_job_queue=True))
     dp.add_handler(CommandHandler("start", start))
 
     updater.start_polling()
