@@ -2,3 +2,9 @@ bot:
     token: <BOT-TOKEN>
 owner:
     ip: <OWNER-IP>
+    id: <OWNER-TELEGRAM-ID>
+user:
+    <USER1>: <USER-ID>
+    <USER2>: <USER-ID>
+    <USER3>: <USER-ID>
+    <USERn>: <USER-ID>

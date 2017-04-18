@@ -25,8 +25,7 @@ def start(bot, update):
     custom_keyboard = [['Kommen 🏠','Gehen 🚙'],['Nur Öffnen ⏫']]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard)
     update.message.reply_text("Hallo " + update.message.from_user.first_name + u" ✌🏻",
-           reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('❌ Abbrechen', callback_data='abort')]]))
-           #reply_markup=reply_markup)
+           reply_markup=reply_markup)
 
 def ping(ip):
     ret = subprocess.call(['ping', '-c', '2', '-W', '1', ip],
@@ -90,15 +89,20 @@ def button(bot, update):
     update.callback_query.answer()
 
 def analyzeText(bot,update, job_queue):
-    if update.message.text == 'Kommen 🏠':
-        autoClose(bot,update,job_queue,True)
-    elif update.message.text == 'Gehen 🚙':
-        autoClose(bot,update,job_queue,False)
-    elif update.message.text == 'Nur Öffnen ⏫':
-        update.message.reply_text("Garage wird geöffnet...") 
-        switchGarage()    
-        msg = update.message.reply_text("Garage schließen?",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⏬ Schließen', callback_data='close')]]))
+    userlist = [cfg['owner']['id']] + list(cfg['user'].values())
+    if update.message.chat_id in userlist:
+        if update.message.text == 'Kommen 🏠':
+            autoClose(bot,update,job_queue,True)
+        elif update.message.text == 'Gehen 🚙':
+            autoClose(bot,update,job_queue,False)
+        elif update.message.text == 'Nur Öffnen ⏫':
+            update.message.reply_text("Garage wird geöffnet...") 
+            switchGarage()    
+            msg = update.message.reply_text("Garage schließen?",
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⏬ Schließen', callback_data='close')]]))
+    else:
+         update.message.reply_text("Zugriff verweigert.\nZum Freischalten bitte an @Andre0512 wenden.")
+
 
 def main():
     global pwd
