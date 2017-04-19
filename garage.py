@@ -23,7 +23,7 @@ def getConfig():
 
 def start(bot, update):
     if authorized(update, bot):
-        custom_keyboard = [['Kommen 🏠','Gehen 🚙'],['Nur Öffnen ⏫']]
+        custom_keyboard = [['Kommen 🏠','Gehen 🚙'],['Garage öffnen ⏫', '2 Minuten öffnen ⏱']]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard)
         update.message.reply_text("Hallo " + update.message.from_user.first_name + u" ✌🏻",
                reply_markup=reply_markup)
@@ -49,11 +49,11 @@ def countDown(bot, job):
     counter = counter -1
     downJob = Job(countDown, 1, repeat=False, context=job.context)
     reply_markup=False
-    if counter == -1:
-        text="Garage wird geschlossen..."
-    elif abort:
+    if abort:
         text="Wird abgebrochen..."
         abort = False
+    elif counter == -1:
+        text="Garage wird geschlossen..."
     else:
         job.context[1].put(downJob)
         text="Garage wird in *" + str(counter) + " Sekunden* geschlossen."
@@ -112,17 +112,27 @@ def authorized(update, bot):
                  + " " + str(update.message.from_user.id) + "* wurde verweigert.", chat_id=cfg['owner']['id'], parse_mode=ParseMode.MARKDOWN)
         return False
 
-def analyzeText(bot,update, job_queue):
+def openShort(bot,update,job_queue,close):
+    update.message.reply_text("Garage wird geöffnet...") 
+    switchGarage()    
+    msg = update.message.reply_text("Garage schließen?",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⏬ Schließen', callback_data='close')]]))
+    if close:
+        global counter
+        counter = 30
+        downJob = Job(countDown, 90, repeat=False, context=[msg,job_queue])
+        job_queue.put(downJob)
+
+def analyzeText(bot,update,job_queue):
     if authorized(update,bot):
         if update.message.text == 'Kommen 🏠':
             autoClose(bot,update,job_queue,True)
         elif update.message.text == 'Gehen 🚙':
             autoClose(bot,update,job_queue,False)
-        elif update.message.text == 'Nur Öffnen ⏫':
-            update.message.reply_text("Garage wird geöffnet...") 
-            switchGarage()    
-            update.message.reply_text("Garage schließen?",
-                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⏬ Schließen', callback_data='close')]]))
+        elif update.message.text == 'Garage öffnen ⏫':
+            openShort(bot,update,job_queue,False)
+        elif update.message.text == '2 Minuten öffnen ⏱':
+            openShort(bot,update,job_queue,True)
         else:
             start(bot,update)
         if not update.message.chat_id == cfg['owner']['id']:
