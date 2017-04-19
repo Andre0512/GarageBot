@@ -47,17 +47,17 @@ def countDown(bot, job):
     global counter
     global abort
     counter = counter -1
-    downJob = Job(countDown, 1, repeat=False, context=job.context)
     reply_markup=False
+    downJob = Job(countDown, 1, repeat=False, context=job.context)
     if abort:
         text="Wird abgebrochen..."
         abort = False
     elif counter == -1:
         text="Garage wird geschlossen..."
     else:
-        job.context[1].put(downJob)
         text="Garage wird in *" + str(counter) + " Sekunden* geschlossen."
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('❌ Abbrechen', callback_data='abort')]])
+        job.context[1].put(downJob)
     bot.editMessageText(text=text,reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN, 
             chat_id=job.context[0].chat_id, message_id=job.context[0].message_id)
     if counter == -1:
@@ -118,11 +118,17 @@ def openShort(bot,update,job_queue,close):
     msg = update.message.reply_text("Garage schließen?",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⏬ Schließen', callback_data='close')]]))
     if close:
-        global counter
-        counter = 30
-        downJob = Job(countDown, 90, repeat=False, context=[msg,job_queue])
+        downJob = Job(msgBeforeClose, 90, repeat=False, context=[msg,job_queue])
         job_queue.put(downJob)
 
+def msgBeforeClose(bot,job):
+    global counter
+    counter = 29
+    bot.editMessageText(text="Automatisches schließen...", chat_id=job.context[0].chat_id, message_id=job.context[0].message_id)
+    job.context[0] = bot.sendMessage(text="Garage wird in 30 Sekunden geschlossen.",chat_id=job.context[0].chat_id)
+    downJob = Job(countDown, 1, repeat=False, context=job.context)
+    job.context[1].put(downJob)
+        
 def analyzeText(bot,update,job_queue):
     if authorized(update,bot):
         if update.message.text == 'Kommen 🏠':
