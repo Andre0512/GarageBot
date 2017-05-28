@@ -83,7 +83,7 @@ def count_down(bot, job):
     else:
         text = string['timer']
         text = str.replace(text, 'xxx', '*' + str(counter) + '*')
-        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(string['stop'], callback_data='abort')]])
+        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton('❌ ' + string['stop'], callback_data='abort')]])
         job.context[1].run_once(count_down, 1, context=job.context)
     bot.editMessageText(text=text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN,
                         chat_id=job.context[0].chat_id, message_id=job.context[0].message_id)

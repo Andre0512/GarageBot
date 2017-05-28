@@ -11,6 +11,6 @@ closing: Garage is closed...
 opening: Garage is opened...
 timer: Garage is closed in xxx seconds.
 close_now: Garage is opened ...\nClose now?
-denied: Access denied. Please contact xxx for unlocking.
+denied: Access denied.\nPlease contact xxx for unlocking.
 denied_info: Access denied for xxx.
 use_info: xxx has sent yyy
