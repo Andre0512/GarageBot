@@ -1,16 +1,19 @@
 # GarageBot
 
-Dieser TelegramBot dient zum Schalten einer Garage.
+#### This telegram bot is used to switch a relay, which controls a remote control of a garage.
 
-## Funktionen:
+## Functions:
 
-- Ermöglicht einfache Schaltvorgänge und Öffnen für eine Zeitspanne
-- Kann die Garage nach Ankommen oder Verlassen wieder schließen
-- Ermittelt durch Ping des Smartphones die Anwesenheit
-- Warnt vor dem Schließen und ermöglicht einen Abbruch
-- Ermöglicht den Zugriff nur für eingetragene Nutzer
-- Benachrichtigt über den Zugriff anderer Nutzer
+- Allows easy switching and opening for a period of time
+- Can close the garage after arriving or leaving
+- Determines the presence by pinging the owner's smartphone
+- Warns before closing and allows a break-off
+- Allows access via Telegram only for registered users
+- Notify the owner about the access of other registered users
 
 ## Installation
-
-- Erforderliche Daten in die config.yml eintragen
+```
+pip3 install python-telegram-bot
+pip3 install pyyaml
+```
+#### Enter required data into `config.yml`
