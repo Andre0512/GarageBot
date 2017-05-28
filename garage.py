@@ -6,7 +6,7 @@ import logging
 from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, Job
 import time
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 import yaml
 import os
 import subprocess
@@ -59,6 +59,7 @@ def ping(ip):
 
 
 def switch_garage():
+    return
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(26, GPIO.OUT)
 
@@ -74,7 +75,6 @@ def count_down(bot, job):
     global abort
     counter = counter - 1
     reply_markup = False
-    down_job = Job(count_down, 1, repeat=False, context=job.context)
     if abort:
         text = string['stopping']
         abort = False
@@ -84,7 +84,7 @@ def count_down(bot, job):
         text = string['timer']
         text = str.replace(text, 'xxx', '*' + str(counter) + '*')
         reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(string['stop'], callback_data='abort')]])
-        job.context[1].run_once(down_job)
+        job.context[1].run_once(count_down, 1, context=job.context)
     bot.editMessageText(text=text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN,
                         chat_id=job.context[0].chat_id, message_id=job.context[0].message_id)
     if counter == -1:
@@ -96,8 +96,7 @@ def auto_close(bot, update, job_queue, state):
                                     reply_markup=InlineKeyboardMarkup(
                                         [[InlineKeyboardButton('⏬ ' + string['close'], callback_data='close')]]))
     switch_garage()
-    job = Job(check_state, 5, repeat=False, context=[update, state, job_queue, msg])
-    job_queue.run_once(job)
+    job_queue.run_once(check_state, 5, context=[update, state, job_queue, msg])
 
 
 def check_state(bot, job):
@@ -108,8 +107,7 @@ def check_state(bot, job):
             abort = False
             return
         else:
-            ping_job = Job(check_state, 5, repeat=False, context=job.context)
-            job.context[2].run_once(ping_job)
+            job.context[2].run_once(check_state, 5, context=job.context)
     else:
         bot.editMessageText(text=string['opening'], chat_id=job.context[3].chat_id,
                             message_id=job.context[3].message_id)
@@ -117,8 +115,7 @@ def check_state(bot, job):
         text = str.replace(text, 'xxx', '*20*')
         msg = job.context[0].message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton('❌ ' + string['stop'], callback_data='abort')]]))
-        down_job = Job(count_down, 1, repeat=False, context=[msg, job.context[2]])
-        job.context[2].run_once(down_job)
+        job.context[2].run_once(count_down, 1, context=[msg, job.context[2]])
 
         global counter
         counter = 20
@@ -158,8 +155,7 @@ def open_short(bot, update, job_queue, close):
     msg = update.message.reply_text(string['close_question'], reply_markup=InlineKeyboardMarkup(
         [[InlineKeyboardButton('⏬ ' + string['close'], callback_data='close')]]))
     if close:
-        down_job = Job(msg_before_close, 90, repeat=False, context=[msg, job_queue])
-        job_queue.run_once(down_job)
+        job_queue.run_once(msg_before_close, 90, context=[msg, job_queue])
 
 
 def msg_before_close(bot, job):
@@ -170,8 +166,7 @@ def msg_before_close(bot, job):
     text = string['timer']
     text = str.replace(text, 'xxx', '*30*')
     job.context[0] = bot.sendMessage(text=text, chat_id=job.context[0].chat_id, parse_mode=ParseMode.MARKDOWN)
-    down_job = Job(count_down, 1, repeat=False, context=job.context)
-    job.context[1].run_once(down_job)
+    job.context[1].run_once(count_down, 1, context=job.context)
 
 
 def analyze_text(bot, update, job_queue):
