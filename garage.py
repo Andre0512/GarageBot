@@ -6,7 +6,7 @@ import logging
 from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, Job
 import time
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import yaml
 import os
 import subprocess
@@ -59,7 +59,6 @@ def ping(ip):
 
 
 def switch_garage():
-    return
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(26, GPIO.OUT)
 
