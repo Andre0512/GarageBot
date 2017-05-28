@@ -16,7 +16,7 @@
 
 I have soldered two wires to the switch of the garage remote to bridged it. Then the wires were connected to a relay. This relay is controlled by a Raspberry Pi.
 
-<img src="https://github.com/Andre0512/GarageBot/blob/master/images/setting.jpg" width="350"/>
+<img src="images/setting.jpg" width="350"/>
 
 
 ## Installation
@@ -48,4 +48,4 @@ python3 garage.py &
 ## Screenshot of the Bot
 The finished bot looks like this:
 
-<img src="https://github.com/Andre0512/GarageBot/blob/master/images/screenshot.jpg" width="260"/>
+<img src="images/screenshot.jpg" width="260"/>
