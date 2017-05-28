@@ -83,8 +83,8 @@ def count_down(bot, job):
     else:
         text = string['timer']
         text = str.replace(text, 'xxx', '*' + str(counter) + '*')
-        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(string['abort'], callback_data='abort')]])
-        job.context[1].put(down_job)
+        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(string['stop'], callback_data='abort')]])
+        job.context[1].run_once(down_job)
     bot.editMessageText(text=text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN,
                         chat_id=job.context[0].chat_id, message_id=job.context[0].message_id)
     if counter == -1:
@@ -97,7 +97,7 @@ def auto_close(bot, update, job_queue, state):
                                         [[InlineKeyboardButton('⏬ ' + string['close'], callback_data='close')]]))
     switch_garage()
     job = Job(check_state, 5, repeat=False, context=[update, state, job_queue, msg])
-    job_queue.put(job)
+    job_queue.run_once(job)
 
 
 def check_state(bot, job):
@@ -109,7 +109,7 @@ def check_state(bot, job):
             return
         else:
             ping_job = Job(check_state, 5, repeat=False, context=job.context)
-            job.context[2].put(ping_job)
+            job.context[2].run_once(ping_job)
     else:
         bot.editMessageText(text=string['opening'], chat_id=job.context[3].chat_id,
                             message_id=job.context[3].message_id)
@@ -118,7 +118,7 @@ def check_state(bot, job):
         msg = job.context[0].message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton('❌ ' + string['stop'], callback_data='abort')]]))
         down_job = Job(count_down, 1, repeat=False, context=[msg, job.context[2]])
-        job.context[2].put(down_job)
+        job.context[2].run_once(down_job)
 
         global counter
         counter = 20
@@ -159,7 +159,7 @@ def open_short(bot, update, job_queue, close):
         [[InlineKeyboardButton('⏬ ' + string['close'], callback_data='close')]]))
     if close:
         down_job = Job(msg_before_close, 90, repeat=False, context=[msg, job_queue])
-        job_queue.put(down_job)
+        job_queue.run_once(down_job)
 
 
 def msg_before_close(bot, job):
@@ -169,9 +169,9 @@ def msg_before_close(bot, job):
                         message_id=job.context[0].message_id)
     text = string['timer']
     text = str.replace(text, 'xxx', '*30*')
-    job.context[0] = bot.sendMessage(text=text, chat_id=job.context[0].chat_id)
+    job.context[0] = bot.sendMessage(text=text, chat_id=job.context[0].chat_id, parse_mode=ParseMode.MARKDOWN)
     down_job = Job(count_down, 1, repeat=False, context=job.context)
-    job.context[1].put(down_job)
+    job.context[1].run_once(down_job)
 
 
 def analyze_text(bot, update, job_queue):
