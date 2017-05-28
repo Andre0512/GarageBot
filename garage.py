@@ -16,9 +16,30 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 
+def custom_str_constructor(loader, node):
+    return loader.construct_scalar(node).encode('utf-8')
+
+
 def get_yml(file):
-    with open(os.path.join(pwd, file), 'r') as ymlfile:
-        result = yaml.load(ymlfile)
+    result = {}
+    with open(os.path.join(pwd, file), 'rb') as ymlfile:
+        values = yaml.load(ymlfile)
+        for k, v in values.items():
+            result[k.decode('utf-8')] = dict_byte_to_str(v)
+    return result
+
+
+def dict_byte_to_str(v):
+    result = {}
+    if hasattr(v, 'items'):
+        for key, value in v.items():
+            if isinstance(value, bytes):
+                value = value.decode('utf-8')
+                value = str.replace(value, "\\n", "\n")
+            result[key.decode('utf-8')] = value
+    else:
+        result = v.decode('utf-8')
+        result = str.replace(result, "\\n", "\n")
     return result
 
 
@@ -46,6 +67,7 @@ def switch_garage():
     GPIO.output(26, GPIO.LOW)
     time.sleep(2)
     GPIO.cleanup()
+
 
 def count_down(bot, job):
     global counter
@@ -109,7 +131,7 @@ def button(bot, update):
         abort = True
     elif query.data == "close":
         abort = True
-        bot.editMessageText(text=string['close'], chat_id=query.message.chat_id, message_id=query.message.message_id)
+        bot.editMessageText(text=string['closing'], chat_id=query.message.chat_id, message_id=query.message.message_id)
         switch_garage()
     update.callback_query.answer()
 
@@ -120,11 +142,11 @@ def authorized(update, bot):
         return True
     else:
         their_text = string['denied']
-        their_text = str.replace(their_text, 'xxx', cfg['owner']['username'])
+        their_text = str.replace(their_text, 'xxx', '@' + cfg['owner']['username'])
         my_text = string['denied_info']
         my_text = str.replace(my_text, 'xxx',
                               '*' + update.message.from_user.first_name + " " + update.message.from_user.last_name
-                              + " " + str(update.message.from_user.id) + '*')
+                              + " (" + str(update.message.from_user.id) + ')*')
         update.message.reply_text(their_text)
         bot.sendMessage(text=my_text, chat_id=cfg['owner']['id'], parse_mode=ParseMode.MARKDOWN)
         return False
@@ -146,7 +168,7 @@ def msg_before_close(bot, job):
     bot.editMessageText(text=string['automatic'], chat_id=job.context[0].chat_id,
                         message_id=job.context[0].message_id)
     text = string['timer']
-    text = str.replace(text, 'xxx' , '*30*')
+    text = str.replace(text, 'xxx', '*30*')
     job.context[0] = bot.sendMessage(text=text, chat_id=job.context[0].chat_id)
     down_job = Job(count_down, 1, repeat=False, context=job.context)
     job.context[1].put(down_job)
@@ -177,6 +199,7 @@ def main():
     global string
     global abort
 
+    yaml.add_constructor(u'tag:yaml.org,2002:str', custom_str_constructor)
     abort = False
     pwd = os.path.dirname(__file__)
     cfg = get_yml("./config.yml")
