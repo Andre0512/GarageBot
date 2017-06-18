@@ -44,6 +44,12 @@ You can see the Telegram IDs by using an alternative Telegram Client like [Plus 
 python3 garage.py &
 ```
 
+#### Autostart
+Execute this command to start the GarageBot automatically at startup:
+```
+(cat /etc/crontab && echo "@reboot root python3 /home/pi/GarageBot/garage.py") | sudo tee /etc/crontab
+```
+
 
 ## Screenshot of the Bot
 The finished bot looks like this:
