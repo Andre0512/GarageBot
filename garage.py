@@ -206,7 +206,9 @@ def main():
     dp.add_handler(MessageHandler(Filters.text, analyze_text, pass_job_queue=True))
     dp.add_handler(CommandHandler("start", start))
 
-    updater.start_polling()
+    # Increase the server polling timeout, so this script does not break off on
+    # the Raspberry Pi in places with bad WiFi connection
+    updater.start_polling(timeout=100, read_latency=20.)
     updater.idle()
 
 
