@@ -10,6 +10,8 @@ import RPi.GPIO as GPIO
 import yaml
 import os
 import subprocess
+import requests
+import json
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -41,6 +43,17 @@ def dict_byte_to_str(v):
         result = v.decode('utf-8')
         result = str.replace(result, "\\n", "\n")
     return result
+
+
+def request_state():
+    url = cfg['stateapi']['url']
+    user = cfg['stateapi']['user']
+    password = cfg['stateapi']['pass']
+    cert = cfg['stateapi']['cert']
+    response = requests.get(url, auth=requests.auth.HTTPBasicAuth(user, password), verify=cert)
+    json_data = json.loads(response.text)
+    state = json_data['Results'][0]['Readings']['state']['Value']
+    return True if state = "closed" else return False
 
 
 def start(bot, update):

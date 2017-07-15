@@ -4,6 +4,11 @@ owner:
     ip: <OWNER-IP>
     id: <OWNER-TELEGRAM-ID>
     username: <TELEGRAM-USERNAME>
+stateapi:
+    url: <REST-API-URL>
+    user: <USERNAME-FOR-BASICAUTH>
+    pass: <PASSWORD-FOR-BASICAUTH>
+    cert: <CERTIFICATE-FOR-SELF-SIGNED-SSL>
 user:
     <USER1>: <USER-ID>
     <USER2>: <USER-ID>
