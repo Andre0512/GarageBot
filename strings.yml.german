@@ -14,3 +14,6 @@ close_now: Garage wird geöffnet...\nWieder schließen?
 denied: Zugriff verweigert.\nZum Freischalten bitte an xxx wenden.
 denied_info: Zugriff für xxx wurde verweigert.
 use_info: xxx hat yyy gesendt
+state: Status
+closed: Die Garage ist seit xxx geschlossen
+open: Die Garage ist offen seit xxx

@@ -14,3 +14,6 @@ close_now: Garage is opened ...\nClose now?
 denied: Access denied.\nPlease contact xxx for unlocking.
 denied_info: Access denied for xxx.
 use_info: xxx has sent yyy
+state: State
+closed: The garage is closed since xxx
+open: The garage is open since xxx

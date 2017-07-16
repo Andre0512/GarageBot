@@ -6,12 +6,17 @@ import logging
 from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, Job
 import time
-import RPi.GPIO as GPIO
 import yaml
 import os
 import subprocess
 import requests
 import json
+import datetime
+
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    logging.warning("This module is written for Raspberry Pi")
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -45,7 +50,7 @@ def dict_byte_to_str(v):
     return result
 
 
-def request_state():
+def get_state():
     url = cfg['stateapi']['url']
     user = cfg['stateapi']['user']
     password = cfg['stateapi']['pass']
@@ -53,12 +58,23 @@ def request_state():
     response = requests.get(url, auth=requests.auth.HTTPBasicAuth(user, password), verify=cert)
     json_data = json.loads(response.text)
     state = json_data['Results'][0]['Readings']['state']['Value']
-    return True if state = "closed" else return False
+    time = json_data['Results'][0]['Readings']['state']['Time']
+    return [state, time]
+
+
+def send_state(update):
+    state, time = get_state()
+    text = string[state]
+    text = text + " 😁" if state == "closed" else text + " 😱"
+    xxx = time[11:16] if time[:10] == str(datetime.date.today()) else time[8:10] + '.' + time[5:7] + '. ' + time[11:16]
+    text = text.replace("xxx", xxx)
+    update.message.reply_text(text)
 
 
 def start(bot, update):
     if authorized(update, bot):
-        custom_keyboard = [[string['arrive'] + ' 🏠', string['leave'] + ' 🚙'],
+        custom_keyboard = [[string['state'] + ' ↕️'],
+                           [string['arrive'] + ' 🏠', string['leave'] + ' 🚙'],
                            [string['open'] + ' ⏫', string['open_time'] + ' ⏱']]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard)
         update.message.reply_text("Hallo " + update.message.from_user.first_name + u" ✌🏻",
@@ -191,6 +207,8 @@ def analyze_text(bot, update, job_queue):
             open_short(bot, update, job_queue, False)
         elif update.message.text == string['open_time'] + ' ⏱':
             open_short(bot, update, job_queue, True)
+        elif update.message.text == string['state'] + ' ↕️':
+            send_state(update)
         else:
             start(bot, update)
         if not update.message.chat_id == cfg['owner']['id']:
