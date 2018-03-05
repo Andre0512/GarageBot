@@ -26,13 +26,10 @@ git clone https://github.com/Andre0512/GarageBot && cd GarageBot
 python3 -m venv venv && source ./venv/bin/activate # optional
 pip install -r requirements.txt
 ```
-#### Rename the string file in your language to `strings.yml`
+
+#### Enter required data into `config.py`
 ```
-cp strings.yml.english strings.yml
-```
-#### Enter required data into `config.yml`
-```
-cp config.yml.default config.yml
+cp config.py.default config.py && nano config.py
 ```
 For this step, you have to register a Telegram bot by the Telegram [@BotFahter](https://t.me/botfather).
 
