@@ -81,7 +81,8 @@ def switch_garage():
 def count_down(bot, job):
     global counter
     global abort
-    counter = counter - 1
+    if counter > -1:
+        counter -= 1
     reply_markup = False
     if abort:
         text = string['stopping']
