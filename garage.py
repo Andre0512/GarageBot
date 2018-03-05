@@ -11,12 +11,13 @@ import yaml
 from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
 
-from strings import strings
-
 try:
     import RPi.GPIO as GPIO
 except ModuleNotFoundError:
     pass
+
+from strings import strings
+from config import BOTTOKEN, OWNER_IP, OWNER_ID, OWNER_USERNAME, USERS, LANGUAGE
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -112,8 +113,7 @@ def auto_close(bot, update, job_queue, state):
 
 def check_state(bot, job):
     global abort
-    ip = cfg['owner']['ip']
-    if bool(ping(ip)) != bool(job.context[1]):
+    if bool(ping(OWNER_IP)) != bool(job.context[1]):
         if abort:
             abort = False
             return
@@ -145,18 +145,18 @@ def button(bot, update):
 
 
 def authorized(update, bot):
-    userlist = [cfg['owner']['id']] + list(cfg['user'].values())
+    userlist = [OWNER_ID] + [USERS]
     if update.message.chat_id in userlist:
         return True
     else:
         their_text = string['denied']
-        their_text = str.replace(their_text, 'xxx', '@' + cfg['owner']['username'])
+        their_text = str.replace(their_text, 'xxx', '@' + OWNER_ID)
         my_text = string['denied_info']
         my_text = str.replace(my_text, 'xxx',
                               '*' + update.message.from_user.first_name + " " + update.message.from_user.last_name
                               + " (" + str(update.message.from_user.id) + ')*')
         update.message.reply_text(their_text)
-        bot.sendMessage(text=my_text, chat_id=cfg['owner']['id'], parse_mode=ParseMode.MARKDOWN)
+        bot.sendMessage(text=my_text, chat_id=OWNER_ID, parse_mode=ParseMode.MARKDOWN)
         return False
 
 
@@ -192,26 +192,24 @@ def analyze_text(bot, update, job_queue):
             open_short(bot, update, job_queue, True)
         else:
             start(bot, update)
-        if not update.message.chat_id == cfg['owner']['id']:
+        if not update.message.chat_id == OWNER_ID:
             text = string['use_info']
             text = str.replace(text, 'xxx', "*" + update.message.from_user.first_name + "*")
             text = str.replace(text, 'yyy', "*" + update.message.text + "*")
-            bot.sendMessage(text=text, chat_id=cfg['owner']['id'], parse_mode=ParseMode.MARKDOWN)
+            bot.sendMessage(text=text, chat_id=OWNER_ID, parse_mode=ParseMode.MARKDOWN)
 
 
 def main():
     global pwd
-    global cfg
     global string
     global abort
 
     yaml.add_constructor(u'tag:yaml.org,2002:str', custom_str_constructor)
     abort = False
     pwd = os.path.dirname(__file__)
-    cfg = get_yml("./config.yml")
-    string = strings['de']
+    string = strings[LANGUAGE]
 
-    updater = Updater(cfg['bot']['token'])
+    updater = Updater(BOTTOKEN)
 
     dp = updater.dispatcher
     dp.add_handler(CallbackQueryHandler(button))

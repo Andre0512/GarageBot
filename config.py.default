@@ -1,0 +1,6 @@
+BOTTOKEN = '' # Telegram Bottoken (https://t.me/botfather)
+OWNER_IP = '' # IP address of owners phone
+OWNER_ID = 0 # Telegram ID
+OWNER_USERNAME = '' # Telegram username
+USERS = [] # List of accepted user ids
+LANGUAGE = '' # de or en
