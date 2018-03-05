@@ -22,10 +22,9 @@ I have soldered two wires to the switch of the garage remote to bridged it. Then
 ## Installation
 For installation on a Raspberry Pi:
 ```
-git clone https://github.com/Andre0512/GarageBot
-cd GarageBot
-sudo pip3 install python-telegram-bot
-sudo pip3 install pyyaml
+git clone https://github.com/Andre0512/GarageBot && cd GarageBot
+python3 -m venv venv && source ./venv/bin/activate # optional
+pip install -r requirements.txt
 ```
 #### Rename the string file in your language to `strings.yml`
 ```
@@ -41,13 +40,13 @@ You can see the Telegram IDs by using an alternative Telegram Client like [Plus 
 
 #### Start
 ```
-python3 garage.py &
+python garage.py &
 ```
 
 #### Autostart
 Execute this command to start the GarageBot automatically at startup:
 ```
-(cat /etc/crontab && echo "@reboot root python3 /home/pi/GarageBot/garage.py") | sudo tee /etc/crontab
+(cat /etc/crontab && echo "@reboot root $PWD/venv/bin/python $PWD/garage.py") | sudo tee /etc/crontab
 ```
 
 
