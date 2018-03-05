@@ -3,13 +3,18 @@
 #
 
 import logging
-from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, Job
-import time
-import RPi.GPIO as GPIO
-import yaml
 import os
 import subprocess
+import time
+
+import yaml
+from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
+
+try:
+    import RPi.GPIO as GPIO
+except ModuleNotFoundError:
+    pass
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -59,14 +64,18 @@ def ping(ip):
 
 
 def switch_garage():
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(26, GPIO.OUT)
+    try:
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(26, GPIO.OUT)
 
-    GPIO.output(26, GPIO.HIGH)
-    time.sleep(2)
-    GPIO.output(26, GPIO.LOW)
-    time.sleep(2)
-    GPIO.cleanup()
+        GPIO.output(26, GPIO.HIGH)
+        time.sleep(2)
+        GPIO.output(26, GPIO.LOW)
+        time.sleep(2)
+        GPIO.cleanup()
+    except NameError:
+        print('DEBUG: Switched garage')
+        time.sleep(5)
 
 
 def count_down(bot, job):
