@@ -2,3 +2,4 @@
 config.yml
 strings.yml
 venv/
+__pycache__/

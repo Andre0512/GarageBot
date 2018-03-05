@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
+
 
 import logging
 import os
@@ -10,6 +10,8 @@ import time
 import yaml
 from telegram import ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
+
+from strings import strings
 
 try:
     import RPi.GPIO as GPIO
@@ -207,7 +209,7 @@ def main():
     abort = False
     pwd = os.path.dirname(__file__)
     cfg = get_yml("./config.yml")
-    string = get_yml("./strings.yml")
+    string = strings['de']
 
     updater = Updater(cfg['bot']['token'])
 
